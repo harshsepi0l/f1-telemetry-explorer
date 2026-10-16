@@ -1,0 +1,17 @@
+f1_cache/
+
+*.pdf
+
+__pycache__/
+*.pyc
+.venv/
+venv/
+.ipynb_checkpoints/
+
+.DS_Store
+.vscode/
+.idea/
+
+.streamlit/secrets.toml
+
+HW05_Midterm_Readiness_Check.ipynb
