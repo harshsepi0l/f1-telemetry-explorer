@@ -20,6 +20,7 @@ RACE_HTML = Path(__file__).parent / "race.html"         # animated race view + s
 
 @st.cache_resource
 def load_session():
+    Path("f1_cache").mkdir(exist_ok=True)
     fastf1.Cache.enable_cache("f1_cache")
     session = fastf1.get_session(2025, "Italian Grand Prix", "Q")
     session.load()
