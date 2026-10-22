@@ -1,5 +1,5 @@
 streamlit>=1.58
-fastf1>=3.8
+fastf1==3.8.3
 pandas>=2.3
 altair>=6.0
 numpy

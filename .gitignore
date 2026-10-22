@@ -1,4 +1,7 @@
-f1_cache/
+# HTTP cache is local-only. Parsed Italian GP files under f1_cache/2025 are committed
+# so Streamlit Cloud can run without the F1 live-timing API.
+f1_cache/*.sqlite
+f1_cache/*.sqlite-journal
 
 *.pdf
 
