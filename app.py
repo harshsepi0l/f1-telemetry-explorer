@@ -18,20 +18,29 @@ VIEW_W, VIEW_H, PAD = 800, 440, 40                      # track map coordinate s
 RACE_HTML = Path(__file__).parent / "race.html"         # animated race view + speed chart (HTML/JS)
 
 
-@st.cache_resource
+@st.cache_resource(show_spinner="Loading 2025 Italian GP qualifying…")
 def load_session():
+    # Only pull lap/result tables here. Car telemetry loads later per driver
+    # (full telemetry for every lap is too heavy for Streamlit Cloud).
     Path("f1_cache").mkdir(exist_ok=True)
     fastf1.Cache.enable_cache("f1_cache")
     session = fastf1.get_session(2025, "Italian Grand Prix", "Q")
-    session.load()
+    session.load(laps=True, telemetry=False, weather=False, messages=False)
+    # Touch .laps here so a failed download errors inside this function
+    # (and does not get cached as a half-loaded session).
+    if session.laps.empty:
+        raise RuntimeError(
+            "FastF1 did not load any laps. Reboot the app under Manage app, "
+            "wait for the first download to finish, then refresh."
+        )
     return session
 
 
-@st.cache_resource
-def load_corners(_session):
+@st.cache_data(show_spinner=False)
+def load_corners(cache_key):
     # corner numbers + positions from FastF1's circuit info (empty if it can't be fetched)
     try:
-        return _session.get_circuit_info().corners
+        return load_session().get_circuit_info().corners.copy()
     except Exception:
         return pd.DataFrame(columns=["X", "Y", "Number", "Letter", "Angle", "Distance"])
 
@@ -208,7 +217,7 @@ payload = {
     "view": [VIEW_W, VIEW_H],
     "track": [rounded(p, 1) for p in track_pts],
     "drs": drs_zones([tel1, tel2], tel1, pos1, project),
-    "corners": corner_payload(load_corners(session), project, tel1["Distance"].max()),
+    "corners": corner_payload(load_corners("2025_italian_q"), project, tel1["Distance"].max()),
     "drivers": [driver_payload(driver1, tel1, pos1, info1, project),
                 driver_payload(driver2, tel2, pos2, info2, project)],
 }
