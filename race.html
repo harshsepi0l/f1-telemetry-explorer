@@ -214,7 +214,7 @@ function liveryFor(team, color) {
 function carMarkup(dr) {
   // top-down car centered on (0,0), nose pointing +x
   const L = liveryFor(dr.team, dr.color), glow = dr.color;
-  const wheel = `fill="#0a0a0a" stroke="${dr.tire}" stroke-width="0.35"`;
+  const wheel = `fill="#0a0a0a" stroke="#333" stroke-width="0.35"`;
   return `
     <g style="filter:drop-shadow(0 0 3px ${glow})">
       <circle class="tr" cx="-14" cy="0" r="1.4" fill="${glow}" opacity="0.55"/>

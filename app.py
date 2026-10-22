@@ -11,9 +11,6 @@ st.set_page_config(page_title="F1 Telemetry Explorer", layout="wide")
 st.title("F1 Telemetry Explorer (prototype)")
 st.write("Compare two drivers' fastest laps from 2025 Italian GP qualifying.")
 
-# Pirelli sidewall colors
-COMPOUND_COLORS = {"SOFT": "#DA291C", "MEDIUM": "#FFD12E", "HARD": "#F0F0EC",
-                   "INTERMEDIATE": "#43B02A", "WET": "#0067AD"}
 VIEW_W, VIEW_H, PAD = 800, 440, 40                      # track map coordinate space
 RACE_HTML = Path(__file__).parent / "race.html"         # animated race view + speed chart (HTML/JS)
 
@@ -53,8 +50,6 @@ def get_fastest(session, laps, driver):
         "s1": lap["Sector1Time"].total_seconds(),
         "s2": lap["Sector2Time"].total_seconds(),
         "s3": lap["Sector3Time"].total_seconds(),
-        "compound": str(lap["Compound"]).upper(),
-        "tire_age": int(lap["TireLife"]),
         "team": res["TeamName"],
         "color": color,
         "dashed": False,
@@ -147,7 +142,7 @@ def driver_payload(code, tel, pos, info, project):
     pts = project(pos["X"].to_numpy(), pos["Y"].to_numpy())
     return {
         "code": code, "team": info["team"], "color": info["color"], "lap": info["lap"],
-        "dashed": info["dashed"], "tire": COMPOUND_COLORS.get(info["compound"], "#BBBBBB"),
+        "dashed": info["dashed"],
         "tel": {"t": rounded(tel["Time_s"], 3), "pct": rounded(tel["Lap %"], 3),
                 "speed": rounded(tel["Speed"], 1), "throttle": rounded(tel["Throttle"], 1),
                 "gear": [int(g) for g in tel["nGear"]], "drs": [int(d >= 10) for d in tel["DRS"]]},
@@ -156,22 +151,18 @@ def driver_payload(code, tel, pos, info, project):
 
 
 def driver_card(code, info):
-    tire = COMPOUND_COLORS.get(info["compound"], "#BBBBBB")
     st.markdown(
         f'<div style="border:3px solid {info["color"]}; border-radius:10px; padding:12px 16px; margin-bottom:8px;">'
         f'<div style="font-size:28px; font-weight:700; color:{info["color"]};">{code}</div>'
         f'<div style="font-size:15px;">{info["team"]}</div>'
         f'<div style="font-size:14px; margin-top:6px;">'
-        f'<span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:{tire};'
-        f' border:1px solid #555; margin-right:4px;"></span>'
-        f'{info["compound"].title()} tires ({info["tire_age"]} laps old)<br>'
         f'lap: <b>{info["lap"]:.3f} s</b></div></div>',
         unsafe_allow_html=True,
     )
 
 
 session = load_session()
-laps = session.laps.rename(columns={"TyreLife": "TireLife", "FreshTyre": "FreshTire"})
+laps = session.laps
 drivers = list(session.results["Abbreviation"])
 
 c1, c2 = st.columns(2)
