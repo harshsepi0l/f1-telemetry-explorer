@@ -48,7 +48,7 @@
 </style></head>
 <body>
 <div class="card">
-  <div class="top mono"><span id="lapN">Lap 1</span><span>Monza · <b id="clock">0.0 s</b></span></div>
+  <div class="top mono"><span>Fastest lap</span><span>Monza · <b id="clock">0.0 s</b></span></div>
 
   <div class="controls">
     <button id="play" class="primary">Play</button>
@@ -373,14 +373,14 @@ if (tie) {
 }
 
 // ---------- clock + controls ----------
-let t = 0, lapN = 1, playing = false, rate = 2, last = null, scrubbing = false;
+let t = 0, playing = false, rate = 2, last = null, scrubbing = false;
 const playBtn = document.getElementById("play");
 const scrub = document.getElementById("scrub");
 scrub.max = maxT.toFixed(2);
 
 function snapHeadings() { cars.forEach(c => c.ang = null); }
 playBtn.onclick = () => { playing = !playing; playBtn.textContent = playing ? "Pause" : "Play"; };
-document.getElementById("reset").onclick = () => { t = 0; lapN = 1; snapHeadings(); };
+document.getElementById("reset").onclick = () => { t = 0; snapHeadings(); };
 document.querySelectorAll(".rate").forEach(b => b.onclick = () => {
   rate = +b.dataset.r;
   document.querySelectorAll(".rate").forEach(x => x.classList.toggle("on", x === b));
@@ -511,7 +511,6 @@ function render(dt) {
   });
 
   document.getElementById("clock").textContent = Math.min(t, maxT).toFixed(1) + " s";
-  document.getElementById("lapN").textContent = "Lap " + lapN;
   if (!scrubbing) scrub.value = Math.min(t, maxT).toFixed(2);
 
   const [a, b] = drivers;
@@ -532,7 +531,7 @@ function frame(now) {
   last = now;
   if (playing) {
     t += dt * rate;
-    if (t > maxT + 3.0 * rate) { t = 0; lapN += 1; snapHeadings(); }  // hold ~3s on the result, then loop
+    if (t > maxT + 3.0 * rate) { t = 0; snapHeadings(); }  // hold ~3s on the result, then replay
   }
   render(dt);
   requestAnimationFrame(frame);
