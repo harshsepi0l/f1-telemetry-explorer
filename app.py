@@ -12,12 +12,14 @@ st.title("F1 Telemetry Explorer (prototype)")
 st.write("Compare two drivers' fastest laps from 2025 Italian GP qualifying.")
 
 VIEW_W, VIEW_H, PAD = 800, 440, 40                      # track map coordinate space
-RACE_HTML = Path(__file__).parent / "race.html"         # animated race view + speed chart (HTML/JS)
+ROOT = Path(__file__).parent
+RACE_HTML = ROOT / "race.html"                          # animated race view + speed chart (HTML/JS)
+CACHE_DIR = ROOT / "f1_cache"                           # parsed qualifying files shipped with the repo
 
 
 @st.cache_resource
 def load_session():
-    fastf1.Cache.enable_cache("f1_cache")
+    fastf1.Cache.enable_cache(str(CACHE_DIR))
     session = fastf1.get_session(2025, "Italian Grand Prix", "Q")
     session.load()
     return session

@@ -10,23 +10,28 @@ Formula 1 broadcasts show who was fastest, but rarely where on the lap or why. T
 
 **What the app does:** The user picks two drivers. The app then shows:
 
-- their speed traces on a shared lap-distance axis (0–100% of the lap), with hover tooltips and zoom
-- lap and sector times side by side
-- the tire compound and tire age for each lap
+- both fastest laps on the Monza layout, with play, pause, a scrubber, DRS zones, and numbered corners
+- a speed chart on lap percent (0–100). The dots follow the cars. Hover for both drivers, or click to jump
+- lap time and the three sector times side by side
+- team color and lap time on each driver card. Teammates share a color, so the second driver is a lighter shade
+
+Tire compound is not shown in the app. It barely changes in this session, so it is only in the analysis.
 
 ## Repository Contents
 
 | File | Description |
 |---|---|
-| `app.py` | Streamlit app |
+| `app.py` | Streamlit app. Loads the session and passes the two laps into `race.html` |
+| `race.html` | Race view and speed chart. `app.py` fills in `__DATA__` before showing it |
+| `f1_cache/2025/` | Parsed 2025 Italian GP qualifying cache, so the app does not have to call the F1 API |
 | `analysis.ipynb` | Main analysis notebook: data loading, variable audit, data-quality checks, the two analytical questions, and the lap-alignment check |
 | `f1_analysis.py` | Helper functions used by the analysis notebook |
-| `requirements.txt` | Python dependencies |
+| `requirements.txt` | Python dependencies. FastF1 is pinned to 3.8.3 so it matches that cache |
 | `AI_USE_DISCLOSURE.md` | AI-use disclosure |
 
 ## Data
 
-**Source:** [FastF1](https://docs.fastf1.dev/) (v3.8), a Python library that wraps Formula 1's official live-timing feed.
+**Source:** [FastF1](https://docs.fastf1.dev/) 3.8.3, a Python library that wraps Formula 1's official live-timing feed.
 
 **Session:** 2025 Italian Grand Prix, Qualifying (`fastf1.get_session(2025, "Italian Grand Prix", "Q")`).
 
@@ -36,11 +41,11 @@ Formula 1 broadcasts show who was fastest, but rarely where on the lap or why. T
 
 ### Data Access
 
-You don't need to download anything by hand, and no API key is required. On the first run, FastF1 downloads the session from the F1 live-timing API and caches it in a local `f1_cache/` folder. Later runs load from the cache.
+You don't need to download anything by hand, and no API key is required. The parsed qualifying files are already in `f1_cache/2025/`, so a normal run loads from those files.
 
-- The first load needs an internet connection and can take a minute or two.
-- `f1_cache/` is excluded from the repo (about 47 MB) and is recreated automatically.
-- If you get a "cache directory does not exist" error, create the folder first with `mkdir f1_cache`.
+- The F1 live-timing site often blocks cloud servers. That is why the parsed cache is in the repo.
+- Only the local HTTP cache (`f1_cache/*.sqlite`) is gitignored. FastF1 rebuilds it if it needs to.
+- If those `.ff1pkl` files are missing, FastF1 will try to download the session. That needs an internet connection and can take a minute or two.
 
 ## Setup and Run
 
@@ -58,16 +63,22 @@ source .venv/bin/activate        # Windows: .venv\Scripts\activate
 # 3. Install dependencies
 pip install -r requirements.txt
 
-# 4. Create the cache folder (first time only)
-mkdir -p f1_cache
-
-# 5. Run the app
+# 4. Run the app
 streamlit run app.py
 ```
 
-The app opens at `http://localhost:8501`.
+The app opens at `http://localhost:8501`. Run the commands above from inside `f1-telemetry-explorer`. The cache and `race.html` sit next to `app.py`.
 
-To reproduce the analysis, open the notebook with `jupyter notebook analysis.ipynb` and run all cells.
+In the terminal you should see `Using cached data` and then `Finished loading data for 20 drivers`. That means it used the files in the repo and did not download the session. The first load still takes a few seconds because the telemetry files are large.
+
+If the terminal says `No cached data found` or `Failed to load`:
+
+- You started Streamlit from a different folder, or `f1_cache/2025/` did not come down with the clone.
+- Do not replace `f1_cache/` with an empty folder. That makes FastF1 try the F1 website, which often fails.
+
+The page should show two driver dropdowns. Pick two different drivers. The race view is under **Race around Monza**, and the lap and sector times are under that. Corner numbers come from a small extra lookup. If that lookup fails, the race and the speed chart still run.
+
+To reproduce the analysis, stay in the same folder and run `jupyter notebook analysis.ipynb`, then run all cells. The notebook uses the same cache.
 
 ## Key Limitations
 
@@ -77,4 +88,4 @@ To reproduce the analysis, open the notebook with `jupyter notebook analysis.ipy
 - **Brake is on/off only.** The channel says whether the driver is braking, not how hard.
 - **Descriptive, not causal.** The analysis cannot split the car from the driver. n = 20 and teammates share cars, so the grid correlations are just associations.
 - **Untimed laps dropped.** Out/in laps have no lap time. I dropped them rather than filling them in.
-- **Prototype.** The app runs locally and has not been deployed. Corner names on the speed chart are the next UX change. Race stints are the next data change.
+- **Corners are on the map.** The next data change is race stints, where tire compound, tire age, and DRS actually change.

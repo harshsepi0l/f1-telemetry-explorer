@@ -4,7 +4,7 @@ import fastf1
 import numpy as np
 import pandas as pd
 
-CACHE_DIR = "f1_cache"
+CACHE_DIR = os.path.join(os.path.dirname(__file__), "f1_cache")
 
 CORNER_NAMES = {1: "T1 chicane", 4: "Roggia", 6: "Lesmo 1", 7: "Lesmo 2", 8: "Ascari", 11: "Parabolica"}
 
