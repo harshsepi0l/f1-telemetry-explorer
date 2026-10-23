@@ -4,6 +4,9 @@ f1_cache/*.sqlite
 f1_cache/*.sqlite-journal
 
 *.pdf
+*.pptx
+*.docx
+Presentation_Notes.md
 
 __pycache__/
 *.pyc
